@@ -1,4 +1,4 @@
-# Copyright:    (C) 2017-2018 Sachs Undergraduate Research Apprentice Program
+# Copyright:    (C) 2017-2019 Sachs Undergraduate Research Apprentice Program
 #               This program and its accompanying materials are distributed 
 #               under the terms of the GNU General Public License v3.
 # Filename:     monteCarlo.R
@@ -37,9 +37,9 @@ library(mvtnorm) # Random sampling.
 #'         confidence interval for a mixture DER over an interval of doses.
 #'         
 #' @examples
-#' ratios <- c(1/2, 1/2)
-#' LET_vals <- c(195, 70)
-#' simulate_monte_carlo(0:100, LET_vals, ratios)
+#  ratios <- c(1/2, 1/2)
+#  LET_vals <- c(195, 70)
+#  simulate_monte_carlo(0:100, LET_vals, ratios)
 
 simulate_monte_carlo <- function(n = 200, dose, LET, ratios, model = "NTE", 
                                  vcov = TRUE, interval_length = 0.95,

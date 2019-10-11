@@ -1,4 +1,4 @@
-# Copyright:    (C) 2017-2018 Sachs Undergraduate Research Apprentice Program
+# Copyright:    (C) 2017-2019 Sachs Undergraduate Research Apprentice Program
 #               This program and its accompanying materials are distributed 
 #               under the terms of the GNU General Public License v3.
 # Filename:     synergyTheory.R 
@@ -12,8 +12,10 @@
 # Details:      See data_info.R for further licensing, attribution,
 #               references, and abbreviation information.
 
-source("data_info_V1.R") # Load in the data. Remark: dose is in units of cGy; 
-# LET usually in keV/micron; prevalence Prev always < 1
+source("data_info_V1.R") # Load in the data. 
+# Remark: dose is in units of cGy; 
+# LET usually in keV/micron; 
+# prevalence Prev always < 1.
 # (i.e. not in %, which would mean prevalence < 100 but is strongly deprecated).
 
 library(deSolve) # Solving differential equations.
@@ -30,8 +32,10 @@ phi <- 2000 # even larger phi should give the same final results,
 #Y_0 <- 0.025 # value for robustness check
 #Y_0=0.041
 print (Y_0)
+
 #================================ DER MODELS ==================================#
 
+# (Henry: We do not have beta photon model in this paper, right?)
 #================ PHOTON MODEL =================#
 # Linear model fit on beta_decay_data dataset. 
 # We will never recalculate this unless new data comes in but here it is 
@@ -44,8 +48,8 @@ print (Y_0)
 # (HZE = high charge and energy; 
 # select(filter(HZE_data, Beam == "O")
 # NTE = non-targeted effects are included in addition to TE)
-# HZE_data <- ion_data[c(13:47,49:52), ] # Includes 1-ion data iff Z > 3 
 HZE_data <- select(filter(ion_data, Z > 3),1:length(ion_data[2,]))
+
 # Uses 3 adjustable parameters. 
 HZE_nte_model <- nls( # Calibrating parameters in a model that modifies the hazard function NTE models in 17Cuc. 
   Prev ~ Y_0 + (1 - exp ( - (aa1 * LET * dose * exp( - aa2 * LET) 
@@ -130,19 +134,22 @@ Fe_600 <- select(filter(HZE_data, LET == 193), data_len)
 Fe_350 <- select(filter(HZE_data, LET == 253), data_len)
 Nb_600 <- select(filter(HZE_data, LET == 464), data_len)
 La_593 <- select(filter(HZE_data, LET == 953), data_len)
-set_list <- list(O_350, Ne_670, Si_260, Ti_1000,
-                 Fe_600, Fe_350, Nb_600, La_593)
+
+set_list <- list(O_350, Ne_670, Si_260, Ti_1000, Fe_600, Fe_350, Nb_600, La_593)
 actual_prev <- HZE_data$Prev
 
 # # Cross Validation for NTE Model:
 theoretical <- vector()
+
 for (i in 1:length(set_list)) {
   test <- set_list[[i]]
   excluded_list <- set_list[-i]
   train <- excluded_list[[1]]
+  
   for (j in 2:length(excluded_list)) {
     train <- rbind(train, excluded_list[[j]])
   }
+  
   HZE_nte_model <- nls(Prev ~ Y_0 + (1 - exp ( - (aa1 * LET * dose * exp( - aa2 * LET) + (1 - exp( - phi * dose)) * kk1))),
                        data = train,
                        weights = NWeight,
@@ -150,6 +157,7 @@ for (i in 1:length(set_list)) {
   predic <- predict(HZE_nte_model, test)
   theoretical <- c(theoretical, predic)
 }
+
 errors <- (theoretical - actual_prev)^2
 NTE_cv <- weighted.mean(errors, HZE_data$NWeight)
 
@@ -159,9 +167,11 @@ for (i in 1:8) {
   test <- set_list[[i]]
   excluded_list <- set_list[-i]
   train <- excluded_list[[1]]
+  
   for (j in 2:length(excluded_list)) {
     train <- rbind(train, excluded_list[[j]])
   }
+  
   HZE_te_model <- nls(Prev ~ Y_0 + (1 - exp ( - (aate1 * LET * dose * exp( - aate2 * LET)))),
                       data = train,
                       weights = NWeight,
@@ -169,6 +179,7 @@ for (i in 1:8) {
   predic <- predict(HZE_te_model, test)
   theoretical <- c(theoretical, predic)
 }
+
 errors <- (theoretical - actual_prev)^2
 TE_cv <- weighted.mean(errors, HZE_data$NWeight)
 
@@ -221,8 +232,8 @@ for (i in rownames(HZE_data)) { # Rows by name
 #'         parameters. 
 #'         
 #' @examples
-#' calculate_SEA(.01 * 0:40, c(70, 195), c(1/2, 1/2), n = 2)
-#' calculate_SEA(.01 * 0:70, c(0.4, 195), c(4/7, 3/7))
+#  calculate_SEA(.01 * 0:40, c(70, 195), c(1/2, 1/2), n = 2)
+#  calculate_SEA(.01 * 0:70, c(0.4, 195), c(4/7, 3/7))
 
 calculate_SEA <- function(dose, LET, ratios, lowLET = FALSE, n = NULL) {
   if (!is.null(n) && (n != length(ratios) | n != length(LET))) {
@@ -230,17 +241,21 @@ calculate_SEA <- function(dose, LET, ratios, lowLET = FALSE, n = NULL) {
   } else if (sum(ratios) != 1) {
     stop("Sum of ratios do not add up to one.")
   } #  End error handling
+  
   total <- 0
   i <- 1
+  
   if (lowLET == TRUE) { 
     # First elements of ratios and LET should be the low-LET DER
     total <- total + calibrated_low_LET_der(dose * ratios[i], LET[i])
     i <- i + 1
   } 
+  
   while (i < length(ratios) + 1) { # Iterate over HZE ions in the mixture.
     total <- total + calibrated_HZE_nte_der(dose * ratios[i], LET[i])
     i <- i + 1
   }
+  
   return(total)
 }
 
@@ -267,8 +282,8 @@ calculate_SEA <- function(dose, LET, ratios, lowLET = FALSE, n = NULL) {
 #'         one-ion DERs parameters. 
 #'         
 #' @examples
-#' calculate_id(.01 * 0:40, c(70, 195), c(1/2, 1/2))
-#' calculate_id(.01 * 0:70, c(.4, 195), c(4/7, 3/7), model = "TE")
+#  calculate_id(.01 * 0:40, c(70, 195), c(1/2, 1/2))
+#  calculate_id(.01 * 0:70, c(.4, 195), c(4/7, 3/7), model = "TE")
 
 calculate_id <- function(dose, LET, ratios, model = "NTE",
                          coef = list(NTE = HZE_nte_model_coef, 
