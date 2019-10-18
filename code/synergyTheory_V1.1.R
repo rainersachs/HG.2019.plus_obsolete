@@ -35,7 +35,6 @@ print (Y_0)
 
 #================================ DER MODELS ==================================#
 
-# (Henry: We do not have beta photon model in this paper, right?)
 #================ PHOTON MODEL =================#
 # Linear model fit on beta_decay_data dataset. 
 # We will never recalculate this unless new data comes in but here it is 
