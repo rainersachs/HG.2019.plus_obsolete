@@ -6,7 +6,6 @@
 #               ion and tumor prevalence data from CSV files. It is part of the 
 #               source code for the NASAmouseHG project.
 # Contact:      Rainer K. Sachs 
-# Website:      https://github.com/sachsURAP/NASAmouseHG (Henry: Is this right?)
 # Mod history:  15 Apr 2018 (I think we need to update this!)
 # Attribution:  This R script was developed at UC Berkeley. Written by Dae Woong 
 #               Ham Summer 2017. Additions, corrections, changes, quality 
@@ -53,7 +52,6 @@ mix_data <- data.frame(read.csv("../data/mix_ion_V1.csv"))
 controls_data = data.frame(read.csv("../data/controls.csv"))
 Y_0 = controls_data[10,4] # background prevalence
 
-# (Henry: Where is the following comment used?)
 # The following, which shows how to compute ion speed and the Katz amorphous track structure parameter,
 # may be used for adding Cucinotta's models in 16 Chang to our scripts and comparing them to our more parsimonious models.
 # GeVu is kinetic energy per atomic mass unit. An example for 670Ne20 is GeVu = 10^-3*670.
